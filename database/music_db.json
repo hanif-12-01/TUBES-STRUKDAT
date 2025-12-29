@@ -1,0 +1,34 @@
+{
+  "artists": [
+    {
+      "nama_artis": "Tulus",
+      "genre": "Pop",
+      "tahun_debut": 2011,
+      "songs": [
+        "Hati-Hati di Jalan",
+        "Monokrom"
+      ]
+    },
+    {
+      "nama_artis": "Sheila on 7",
+      "genre": "Pop Rock",
+      "tahun_debut": 1996,
+      "songs": [
+        "Dan",
+        "Sephia"
+      ]
+    },
+    {
+      "nama_artis": "karina",
+      "genre": "pop",
+      "tahun_debut": 1990,
+      "songs": []
+    },
+    {
+      "nama_artis": "jule",
+      "genre": "selingkuh",
+      "tahun_debut": 2025,
+      "songs": []
+    }
+  ]
+}
