@@ -22,9 +22,8 @@ def load_database():
     try:
         with open(DB_PATH, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+        global artists_list
         artists_list = [Artist.from_dict(a) for a in data.get('artists', [])]
-        
         total_songs = sum(artist.song_count() for artist in artists_list)
         print(f"Database loaded: {len(artists_list)} artis, {total_songs} lagu")
     

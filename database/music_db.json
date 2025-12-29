@@ -19,16 +19,12 @@
       ]
     },
     {
-      "nama_artis": "karina",
-      "genre": "pop",
-      "tahun_debut": 1990,
-      "songs": []
-    },
-    {
       "nama_artis": "jule",
-      "genre": "selingkuh",
+      "genre": "selingkuhan",
       "tahun_debut": 2025,
-      "songs": []
+      "songs": [
+        "vevek wangi"
+      ]
     }
   ]
 }

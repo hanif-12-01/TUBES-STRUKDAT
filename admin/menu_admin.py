@@ -1,10 +1,9 @@
 import os
 import time
 from database.data_store import (
-    artists_list,
     add_artist, get_artist, delete_artist, search_artist,
     add_song_to_artist, delete_song_from_artist,
-    count_total_songs, get_artist_with_most_songs, get_all_artists_sorted_by_songs
+    count_total_songs, get_artist_with_most_songs, get_all_artists_sorted_by_songs, get_all_artists
 )
 from admin.coming_soon import show_coming_soon, show_under_development, show_feature_roadmap
 
@@ -60,12 +59,12 @@ def katalog_add_song():
 
     print("\n--- TAMBAH LAGU KE ARTIS ---\n")
     
-    if not artists_list:
+    artists = get_all_artists()
+    if not artists:
         print("Belum ada artis di database! Tambahkan artis terlebih dahulu.")
         return
-    
     print("Daftar Artis:")
-    for i, artist in enumerate(artists_list, 1):
+    for i, artist in enumerate(artists, 1):
         print(f"  {i}. {artist.nama_artis} ({artist.genre}) - {artist.song_count()} lagu")
     
     nama_artis = input("\nNama Artis: ").strip()
@@ -81,6 +80,8 @@ def katalog_add_song():
         return
     
     if add_song_to_artist(nama_artis, judul_lagu):
+        from database.data_store import save_database
+        save_database()
         print(f"\n✓ Lagu '{judul_lagu}' berhasil ditambahkan ke artis '{artist.nama_artis}'!")
         print(f"  Total lagu {artist.nama_artis}: {artist.song_count()}")
     else:
@@ -130,12 +131,12 @@ def katalog_delete_song():
     
     print("\n--- HAPUS LAGU ---\n")
     
-    if not artists_list:
+    artists = get_all_artists()
+    if not artists:
         print("Belum ada artis di database!")
         return
-    
     print("Daftar Artis:")
-    for i, artist in enumerate(artists_list, 1):
+    for i, artist in enumerate(artists, 1):
         print(f"  {i}. {artist.nama_artis} - {artist.song_count()} lagu")
     
     nama_artis = input("\nNama Artis: ").strip()
@@ -258,14 +259,14 @@ def katalog_report():
     
     print("\n--- LAPORAN KATALOG MUSIK ---\n")
     
-    if not artists_list:
+    artists = get_all_artists()
+    if not artists:
         print("(Katalog masih kosong)")
         return
-    
     # === COUNTING: Total lagu seluruh database ===
     total_songs = count_total_songs()
     print(f"📊 STATISTIK KATALOG")
-    print(f"   Total Artis: {len(artists_list)}")
+    print(f"   Total Artis: {len(artists)}")
     print(f"   Total Lagu : {total_songs}")
     print()
     
