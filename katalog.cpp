@@ -1,0 +1,368 @@
+#include "katalog.h"
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <fstream>
+#include <sstream>
+
+void createList(List &L) {
+    L.first = NULL;
+}
+
+adrArtis createElementArtis(string nama, string genre, int tahun) {
+    adrArtis P = new elmArtis;
+    P->info.nama = nama;
+    P->info.genre = genre;
+    P->info.tahunDebut = tahun;
+    P->next = NULL;
+    P->firstLagu = NULL;
+    return P;
+}
+
+adrLagu createElementLagu(string judul) {
+    adrLagu P = new elmLagu;
+    P->judul = judul;
+    P->next = NULL;
+    return P;
+}
+
+// --- FUNGSI UTAMA PARENT (ARTIS) ---
+
+void insertLastArtis(List &L, adrArtis P) {
+    if (L.first == NULL) {
+        L.first = P;
+    } else {
+        adrArtis Q = L.first;
+        while (Q->next != NULL) {
+            Q = Q->next;
+        }
+        Q->next = P;
+    }
+}
+
+adrArtis searchArtis(List L, string nama) {
+    adrArtis P = L.first;
+    while (P != NULL) {
+        if (P->info.nama == nama) {
+            return P;
+        }
+        P = P->next;
+    }
+    return NULL;
+}
+
+void deleteArtis(List &L, string nama) {
+    adrArtis P = searchArtis(L, nama);
+    
+    if (P == NULL) {
+        cout << "Artis tidak ditemukan!" << endl;
+        return;
+    }
+
+    // 1. DELETE CASCADE: Hapus semua lagu (anak) dulu sebelum hapus artis
+    adrLagu C = P->firstLagu;
+    while (C != NULL) {
+        adrLagu temp = C;
+        C = C->next;
+        delete temp;
+    }
+    P->firstLagu = NULL;
+
+    // 2. HAPUS ARTIS DARI LIST
+    if (P == L.first) {
+        L.first = P->next;
+    } else {
+        adrArtis Q = L.first;
+        while (Q->next != P) {
+            Q = Q->next;
+        }
+        Q->next = P->next;
+    }
+    delete P;
+    cout << "Artis dan semua lagunya berhasil dihapus." << endl;
+}
+
+// --- FUNGSI UTAMA CHILD (LAGU) ---
+
+void insertLastLagu(adrArtis P, adrLagu C) {
+    if (P->firstLagu == NULL) {
+        P->firstLagu = C;
+    } else {
+        adrLagu Q = P->firstLagu;
+        while (Q->next != NULL) {
+            Q = Q->next;
+        }
+        Q->next = C;
+    }
+}
+
+void deleteLagu(adrArtis P, string judul) {
+    if (P->firstLagu == NULL) {
+        cout << "Lagu kosong." << endl;
+        return;
+    }
+
+    adrLagu C = P->firstLagu;
+    adrLagu prev = NULL;
+    bool found = false;
+
+    while (C != NULL) {
+        if (C->judul == judul) {
+            found = true;
+            break;
+        }
+        prev = C;
+        C = C->next;
+    }
+
+    if (found) {
+        if (prev == NULL) {
+            P->firstLagu = C->next;
+        } else {
+            prev->next = C->next;
+        }
+        delete C;
+        cout << "Lagu berhasil dihapus." << endl;
+    } else {
+        cout << "Lagu tidak ditemukan." << endl;
+    }
+}
+
+// --- VIEW & PENGOLAHAN DATA ---
+
+void showAllData(List L) {
+    if (L.first == NULL) {
+        cout << "Data Kosong." << endl;
+        return;
+    }
+
+    adrArtis P = L.first;
+    while (P != NULL) {
+        cout << "---------------------------------" << endl;
+        cout << "Artis : " << P->info.nama << " (" << P->info.genre << ")" << endl;
+        cout << "Debut : " << P->info.tahunDebut << endl;
+        
+        adrLagu C = P->firstLagu;
+        if (C == NULL) {
+            cout << "   (Belum ada lagu)" << endl;
+        } else {
+            int i = 1;
+            while (C != NULL) {
+                cout << "   " << i << ". " << C->judul << endl;
+                C = C->next;
+                i++;
+            }
+        }
+        P = P->next;
+    }
+}
+
+// Fitur Counting: Menghitung total lagu di seluruh list
+int countTotalLagu(List L) {
+    int total = 0;
+    adrArtis P = L.first;
+    while (P != NULL) {
+        adrLagu C = P->firstLagu;
+        while (C != NULL) {
+            total++;
+            C = C->next;
+        }
+        P = P->next;
+    }
+    return total;
+}
+
+// Fitur MAX: Menampilkan artis dengan lagu terbanyak
+void showMostProductiveArtis(List L) {
+    if (L.first == NULL) return;
+
+    adrArtis P = L.first;
+    adrArtis maxArtis = P;
+    int maxCount = 0;
+
+    // Hitung max awal
+    adrLagu C = P->firstLagu;
+    while(C != NULL) { maxCount++; C = C->next; }
+
+    P = P->next;
+    while (P != NULL) {
+        int currentCount = 0;
+        C = P->firstLagu;
+        while(C != NULL) { currentCount++; C = C->next; }
+
+        if (currentCount > maxCount) {
+            maxCount = currentCount;
+            maxArtis = P;
+        }
+        P = P->next;
+    }
+
+    cout << "\n=== ARTIS PALING PRODUKTIF ===" << endl;
+    cout << "Nama        : " << maxArtis->info.nama << endl;
+    cout << "Jumlah Lagu : " << maxCount << endl;
+}
+
+// ========================================
+// DATABASE PERSISTENCE (LOAD & SAVE CSV)
+// ========================================
+
+// LOAD DATA DARI CSV
+void loadFromCSV(List &L, const string &filename) {
+    ifstream file(filename);
+    
+    if (!file.is_open()) {
+        cout << "File " << filename << " tidak ditemukan. Menggunakan data dummy." << endl;
+        return;
+    }
+    
+    string line;
+    bool firstLine = true;
+    
+    // Baca file baris per baris
+    while (getline(file, line)) {
+        // Skip header
+        if (firstLine) {
+            firstLine = false;
+            continue;
+        }
+        
+        // Skip baris kosong
+        if (line.empty()) continue;
+        
+        // Parse CSV: nama_artis;genre;tahun_debut;songs
+        stringstream ss(line);
+        string nama, genre, tahunStr, songsStr;
+        
+        getline(ss, nama, ';');
+        getline(ss, genre, ';');
+        getline(ss, tahunStr, ';');
+        getline(ss, songsStr, ';');
+        
+        // Konversi tahun ke integer
+        int tahun = 0;
+        try {
+            tahun = stoi(tahunStr);
+        } catch (...) {
+            tahun = 2000; // Default jika error
+        }
+        
+        // Buat artis baru
+        adrArtis artis = createElementArtis(nama, genre, tahun);
+        insertLastArtis(L, artis);
+        
+        // Parse lagu-lagu (dipisah koma)
+        if (!songsStr.empty()) {
+            stringstream songStream(songsStr);
+            string judul;
+            
+            while (getline(songStream, judul, ',')) {
+                // Trim whitespace
+                size_t start = judul.find_first_not_of(" \t\r\n");
+                size_t end = judul.find_last_not_of(" \t\r\n");
+                
+                if (start != string::npos && end != string::npos) {
+                    judul = judul.substr(start, end - start + 1);
+                    insertLastLagu(artis, createElementLagu(judul));
+                }
+            }
+        }
+    }
+    
+    file.close();
+    
+    // Hitung berapa data yang di-load
+    int totalArtis = 0;
+    adrArtis P = L.first;
+    while (P != NULL) {
+        totalArtis++;
+        P = P->next;
+    }
+    
+    cout << "[OK] Berhasil load " << totalArtis << " artis dari " << filename << endl;
+}
+
+// SAVE DATA KE CSV
+void saveToCSV(List L, const string &filename) {
+    ofstream file(filename);
+    
+    if (!file.is_open()) {
+        cout << "[X] Gagal membuka file " << filename << " untuk menulis!" << endl;
+        return;
+    }
+    
+    // Tulis header
+    file << "nama_artis;genre;tahun_debut;songs" << endl;
+    
+    // Tulis data artis
+    adrArtis P = L.first;
+    while (P != NULL) {
+        file << P->info.nama << ";";
+        file << P->info.genre << ";";
+        file << P->info.tahunDebut << ";";
+        
+        // Tulis lagu-lagu (dipisah koma)
+        adrLagu C = P->firstLagu;
+        bool first = true;
+        while (C != NULL) {
+            if (!first) file << ",";
+            file << C->judul;
+            first = false;
+            C = C->next;
+        }
+        
+        file << endl;
+        P = P->next;
+    }
+    
+    file.close();
+    
+    // Hitung data yang disimpan
+    int totalArtis = 0;
+    int totalLagu = countTotalLagu(L);
+    P = L.first;
+    while (P != NULL) {
+        totalArtis++;
+        P = P->next;
+    }
+    
+    cout << "[OK] Berhasil menyimpan " << totalArtis << " artis (" 
+         << totalLagu << " lagu) ke " << filename << endl;
+}
+
+// ----- CSV LOADER -----
+bool loadFromCSV(const string &path, List &L) {
+    ifstream f(path);
+    if (!f.is_open()) return false;
+
+    string line;
+    bool any = false;
+    while (getline(f, line)) {
+        if (line.empty()) continue;
+        // Split by semicolon
+        vector<string> parts;
+        stringstream ss(line);
+        string item;
+        while (getline(ss, item, ';')) {
+            parts.push_back(item);
+        }
+        if (parts.size() < 4) continue; // invalid line
+
+        string nama = parts[0];
+        string genre = parts[1];
+        int tahun = 0;
+        try { tahun = stoi(parts[2]); } catch(...) { tahun = 0; }
+        string judul = parts[3];
+
+        // Cari artis, jika tidak ada buat baru
+        adrArtis P = searchArtis(L, nama);
+        if (P == NULL) {
+            P = createElementArtis(nama, genre, tahun);
+            insertLastArtis(L, P);
+        }
+        insertLastLagu(P, createElementLagu(judul));
+        any = true;
+    }
+
+    f.close();
+    return any;
+}
