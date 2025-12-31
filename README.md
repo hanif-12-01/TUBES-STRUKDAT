@@ -22,6 +22,38 @@ Program ini adalah aplikasi katalog musik berbasis CLI (C++), menggunakan strukt
 - **Lagu (Child):**
 	- Judul Lagu
 
+Struktur Data MLL (Multi Linked List) 1-N:
+
+| Komponen         | Tipe                    | Atribut                                                                 |
+|------------------|-------------------------|-------------------------------------------------------------------------|
+| **PARENT (Artis)** | Record (Class/Object)   | `nama_artis` (String), `genre` (String), `tahun_debut` (Integer), Pointer ke Child |
+| **CHILD (Lagu)**  | Tipe Dasar (String)     | Judul lagu saja (contoh: "Hati-Hati di Jalan", "Monokrom", "Dan")         |
+
+Implementasi menggunakan pointer dan struct (lihat `katalog.h`).
+# TUBES-STRUKDAT
+
+## Deskripsi
+Program ini adalah aplikasi katalog musik berbasis CLI (C++), menggunakan struktur data Multi Linked List (MLL) untuk mengelola data artis dan lagu. Data dapat dimuat dan disimpan dari/ke file CSV.
+
+## Fitur Utama
+- Tambah artis baru beserta data genre dan tahun debut
+- Tambah lagu ke artis tertentu
+- Tampilkan seluruh data artis dan lagu
+- Hapus lagu dari artis
+- Hapus artis beserta seluruh lagunya (delete cascade)
+- Cari artis berdasarkan nama
+- Laporan: total lagu & artis paling produktif
+- Load & save data ke file CSV (otomatis saat start/opsional saat keluar)
+
+## Struktur Data
+- **Artis (Parent):**
+	- Nama
+	- Genre
+	- Tahun Debut
+	- List Lagu (Child)
+- **Lagu (Child):**
+	- Judul Lagu
+
 Implementasi menggunakan pointer dan struct (lihat `katalog.h`).
 
 ## Format File CSV
